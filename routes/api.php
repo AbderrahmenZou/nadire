@@ -22,20 +22,11 @@ Route::group(["namespace" => "API"], function () {
     Route::middleware([EnsureTokenIsValid::class])->group(function () {
         Route::post('/logout',  [AuthController::class, 'logout']);
         Route::post('/refresh', [AuthController::class, 'refresh']);
-
-        
-        
-        Route::post('/create',  [CategoryController::class , 'create']);
-        Route::post('/getAll',  [CategoryController::class , 'getAll']);
-        Route::post('/update',  [CategoryController::class , 'update']);
-        Route::post('/delete',  [CategoryController::class , 'delete']);
-        Route::post('/getcategByid',  [CategoryController::class , 'getcategByid']);
-
         
     });
 });
 
-    Route::middleware('auth')->group(function () {
+    
 
         Route::post('/clientes/index',  [ClienteController::class , 'index']);
         Route::post('/clientes/store',  [ClienteController::class , 'store']);
@@ -47,10 +38,10 @@ Route::group(["namespace" => "API"], function () {
         
 
         
-        Route::post('/Document_Comapny/index',  [DocumentComapnyController::class , 'index']);
-    });
+        
+    
 
-    Route::middleware('auth')->group(function () {
+    
 
         Route::post('/operations/index',  [OperationController::class , 'index']);
         Route::post('/operations/store',  [OperationController::class , 'store']);
@@ -58,7 +49,16 @@ Route::group(["namespace" => "API"], function () {
         Route::post('/operations/delete',  [OperationController::class , 'delete']);
         Route::post('/operations/searchOperations',  [OperationController::class , 'searchOperations']);
         Route::post('/operations/downloadOperation',  [OperationController::class , 'downloadOperation']);
-    });
+  
+
+
+  
+        Route::post('/Document_Comapny/index',  [DocumentComapnyController::class , 'index']);
+
+
+        // Route::middleware('auth')->group(function () {
+
+        // });
 
    
 

@@ -30,20 +30,20 @@ class ClienteController extends Controller
         $clientes = Cliente::all();
 
         
-        $token = JWTAuth::parseToken()->getToken();
+        // $token = JWTAuth::parseToken()->getToken();
 
-        // استخراج الرمز (token) من الطلب وتخزينه في متغير
-        return response()->json(['msg' => $token]);
+        // // استخراج الرمز (token) من الطلب وتخزينه في متغير
+        // return response()->json(['msg' => $token]);
 
 
         
-        // Check if any clientes were found
+        // // Check if any clientes were found
         
-        if(!$token){
-            return response()->json(['message' => 'il na pas login'], 404);
-        }elseif ($clientes->isEmpty()) {
-            return response()->json(['message' => 'No clientes found'], 404);
-        }
+        // if(!$token){
+        //     return response()->json(['message' => 'il na pas login'], 404);
+        // }elseif ($clientes->isEmpty()) {
+        //     return response()->json(['message' => 'No clientes found'], 404);
+        // }
         
         // Return JSON response with clientes data
         return response()->json(['message' => 'Clientes retrieved successfully', 'data' => $clientes], 200);
