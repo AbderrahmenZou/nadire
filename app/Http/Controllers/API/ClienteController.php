@@ -1,10 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\API;
 
 use Illuminate\Http\Request;
 use App\Models\cliente;
-
 use App\Models\Operation;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
@@ -25,29 +24,25 @@ class ClienteController extends Controller
      * Display a listing of the resource.
      */
     public function index(Request $request)
-{
-    // Retrieve all clientes from the database
-    $clientes = Cliente::all();
+    {
+        // Retrieve all clientes from the database
+        $clientes = Cliente::all();
 
-    
-    $token = JWTAuth::parseToken()->getToken();
+        // $token = JWTAuth::parseToken()->getToken();
 
-    // استخراج الرمز (token) من الطلب وتخزينه في متغير
-    return response()->json(['msg' => $token]);
-
-
-    
-    // Check if any clientes were found
-    
-    if(!$token){
-        return response()->json(['message' => 'il na pas login'], 404);
-    }elseif ($clientes->isEmpty()) {
-        return response()->json(['message' => 'No clientes found'], 404);
+        // // استخراج الرمز (token) من الطلب وتخزينه في متغير
+        // return response()->json(['msg' => $token]);
+        // // Check if any clientes were found
+        
+        // if(!$token){
+        //     return response()->json(['message' => 'il na pas login'], 404);
+        // }elseif ($clientes->isEmpty()) {
+        //     return response()->json(['message' => 'No clientes found'], 404);
+        // }
+        
+        // Return JSON response with clientes data
+        return response()->json(['message' => 'Clientes retrieved successfully', 'data' => $clientes], 200);
     }
-    
-    // Return JSON response with clientes data
-    return response()->json(['message' => 'Clientes retrieved successfully', 'data' => $clientes], 200);
-}
 
 
     /**
@@ -63,47 +58,48 @@ class ClienteController extends Controller
      */
 
     public function store(Request $request)
-{
-    // Validate the request data
-    $validatedData = $request->validate([
-        'nom_et_prenom' => 'required',
-        'N_Registre' => 'required',
-        'client_company' => 'required',
-        'nif' => 'required',
-        'nis' => 'required',
-        'telecharger_fisher' => 'required|file', // Ensure it is a file
-    ]);
+    {
+        // Validate the request data
+        $validatedData = $request->validate([
+            'nom_et_prenom' => 'required',
+            'N_Registre' => 'required',
+            'client_company' => 'required',
+            'nif' => 'required',
+            'nis' => 'required',
+            'telecharger_fisher' => 'required|file', // Ensure it is a file
+        ]);
 
-    // Determine the original file name
-    $documentName = $request->file('telecharger_fisher')->getClientOriginalName();
+        
+        // Determine the original file name
+        $documentName = $request->file('telecharger_fisher')->getClientOriginalName();
 
-    // Attempt to store the file
-    try {
-        $path = $request->file('telecharger_fisher')->storeAs('client', $documentName, 'doc_client');
-    } catch (\Exception $e) {
-        // In case storing the file fails
-        return response()->json(['error' => 'An error occurred while uploading the file'], 500);
+        // Attempt to store the file
+        try {
+            $path = $request->file('telecharger_fisher')->storeAs('client', $documentName, 'doc_client');
+        } catch (\Exception $e) {
+            // In case storing the file fails
+            return response()->json(['error' => 'An error occurred while uploading the file'], 500);
+        }
+
+        // Create a new Cliente resource
+        $cliente = Cliente::create([
+            'nom_et_prenom' => $validatedData['nom_et_prenom'],
+            'N_Registre' => $validatedData['N_Registre'],
+            'client_company' => $validatedData['client_company'],
+            'nif' => $validatedData['nif'],
+            'nis' => $validatedData['nis'],
+            'telecharger_fisher' => $path, // Store the uploaded file path
+        ]);
+
+        // Check if the cliente was created successfully
+        if ($cliente) {
+            // Return a success response with the created cliente data
+            return response()->json(['message' => 'Cliente created successfully', 'cliente' => $cliente], 201);
+        } else {
+            // Return an error response if creating the cliente fails
+            return response()->json(['error' => 'Failed to create the cliente'], 500);
+        }
     }
-
-    // Create a new Cliente resource
-    $cliente = Cliente::create([
-        'nom_et_prenom' => $validatedData['nom_et_prenom'],
-        'N_Registre' => $validatedData['N_Registre'],
-        'client_company' => $validatedData['client_company'],
-        'nif' => $validatedData['nif'],
-        'nis' => $validatedData['nis'],
-        'telecharger_fisher' => $path, // Store the uploaded file path
-    ]);
-
-    // Check if the cliente was created successfully
-    if ($cliente) {
-        // Return a success response with the created cliente data
-        return response()->json(['message' => 'Cliente created successfully', 'cliente' => $cliente], 201);
-    } else {
-        // Return an error response if creating the cliente fails
-        return response()->json(['error' => 'Failed to create the cliente'], 500);
-    }
-}
 
         
         
@@ -141,20 +137,20 @@ class ClienteController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit($id){
+    // public function edit($id){
 
-        // Find the Cliente by ID
-        $cliente = Cliente::find($id);
+    //     // Find the Cliente by ID
+    //     $cliente = Cliente::find($id);
 
-        // Check if the Cliente exists
-        if (!$cliente) {
-            // Return a not found response if Cliente does not exist
-            return response()->json(['error' => 'Cliente not found'], 404);
-        }
+    //     // Check if the Cliente exists
+    //     if (!$cliente) {
+    //         // Return a not found response if Cliente does not exist
+    //         return response()->json(['error' => 'Cliente not found'], 404);
+    //     }
 
-        // Return the Cliente data for editing
-        return response()->json(['cliente' => $cliente]);
-    }
+    //     // Return the Cliente data for editing
+    //     return response()->json(['cliente' => $cliente]);
+    // }
 
     /**
      * Update the specified resource in storage.
@@ -247,26 +243,28 @@ class ClienteController extends Controller
 
 
 
-public function downloadClient(Request $request, $id)
-{
-    // Find the client record by ID
-    $cliente = Cliente::find($id);
+    public function downloadClient(Request $request)
+    {
+        // Find the client record by ID
+        $id = $request->id;
+        $cliente = Cliente::find($id);
 
-    // Check if the client record exists
-    if (!$cliente) {
-        return response()->json(['msg' => 'Client not found'], 404);
+
+        // Check if the client record exists
+        if (!$cliente) {
+            return response()->json(['msg' => 'Client not found'], 404);
+        }
+
+        // Get the file path from the client record
+        $filePath = $cliente->telecharger_fisher;
+
+        // Check if the file exists
+        if (!Storage::disk('doc_client')->exists($filePath)) {
+            return response()->json(['msg' => 'File not found'], 404);
+        }
+
+        // Download the file
+        return response()->download(storage_path('app/doc_client' , $filePath));
     }
-
-    // Get the file path from the client record
-    $filePath = $cliente->telecharger_fisher;
-
-    // Check if the file exists
-    if (!Storage::disk('doc_client')->exists($filePath)) {
-        return response()->json(['msg' => 'File not found'], 404);
-    }
-
-    // Download the file
-    return response()->download(storage_path('app/doc_client/' . $filePath));
-}
 
 }
