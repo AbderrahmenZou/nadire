@@ -71,6 +71,16 @@ class ClienteController extends Controller
         return redirect()->route('clientes.index')->with('success', 'تم إنشاء العميل بنجاح');
     }
     
+
+
+                            
+
+
+
+
+
+
+
         // Storage::disk('client')->put('text.txt', $request->document_company);
 
         // $formfileds['telecharger_fisher'] = $request->file('telecharger_fisher')->store('telecharger_fisher', 'public');

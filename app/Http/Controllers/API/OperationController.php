@@ -1,9 +1,9 @@
 <?php
 
 namespace App\Http\Controllers\API;
-use App\Models\Operation; 
+use App\Models\Operation; // تم استيراد الكلاس Operation بشكل صحيح
 use Illuminate\Http\Request;
-use App\Models\Cliente; 
+use App\Models\Cliente; // تم تصحيح اسم الكلاس ليتطابق مع النمط بداية الحرف الصغير
 use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
 
@@ -29,63 +29,57 @@ class OperationController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    /**
- * Store a newly created resource in storage.
- */
-/**
- * Store a newly created resource in storage.
- */
-public function store(Request $request)
-{
-    // Validate the request data
+    public function store(Request $request)
+    {
+        // Validate the request data
+        $request->validate([
+            'id_cliente' => 'required',
+            'client_company' => 'required',
+            'N_declaration' => 'required',
+            'La_Date' => 'required',
+            'N_Facture' => 'required',
+            'Montant' => 'required',
+            'N_Bill' => 'required',
+            'N_Repartoire' => 'required',
+            'telecharger_fisher' => 'required|file', // Ensure it is a file
+        ]);
 
-    $request->validate([
-        // 'id_cliente' => 'required',
-        'client_company' => 'required',
-        'N_declaration' => 'required',
-        'La_Date' => 'required',
-        'N_Facture' => 'required',
-        'Montant' => 'required',
-        'N_Bill' => 'required',
-        'N_Repartoire' => 'required',
-        'telecharger_fisher' => 'required',
-    ]);
+        // Determine the original file name
+        $documentName = $request->file('telecharger_fisher')->getClientOriginalName();
 
+        // Attempt to store the file
+        try {
+            $path = $request->file('telecharger_fisher')->storeAs('operation', $documentName, 'doc_operation');
+        } catch (\Exception $e) {
+            // In case storing the file fails
+            return response()->json(['error' => 'An error occurred while uploading the file'], 500);
+        }
 
-    // Determine the original file name
-    $documentName = $request->file('telecharger_fisher')->getClientOriginalName();
+        // Create a new Operation resource
+        $operation = Operation::create([
+            'id_cliente' => $request->id_cliente,
+            'client_company' => $request->client_company,
+            'N_declaration' => $request->N_declaration,
+            'La_Date' => $request->La_Date,
+            'N_Facture' => $request->N_Facture,
+            'Montant' => $request->Montant,
+            'N_Bill' => $request->N_Bill,
+            'N_Repartoire' => $request->N_Repartoire,
+            'telecharger_fisher' => $path, // Store the uploaded file path
+        ]);
 
-    
-    // Attempt to store the file
-    try {
-        $path = $request->file('telecharger_fisher')->storeAs('operation', $documentName, 'doc_operation');
-    } catch (\Exception $e) {
-        // In case storing the file fails
-        return response()->json(['error' => 'An error occurred while uploading the file'], 500);
+        // Check if the operation was created successfully
+        if ($operation) {
+            // Return a success response with the created operation data
+            return response()->json(['message' => 'Operation created successfully', 'operation' => $operation], 201);
+        } else {
+            // Return an error response if creating the operation fails
+            return response()->json(['error' => 'Failed to create the operation'], 500);
+        }
     }
 
-    // Create a new Operation resource
-    $operation = Operation::create([
-        'id_cliente' => $request->id_cliente,
-        'client_company' => $request->client_company,
-        'N_declaration' => $request->N_declaration,
-        'La_Date' => $request->La_Date,
-        'N_Facture' => $request->N_Facture,
-        'Montant' => $request->Montant,
-        'N_Bill' => $request->N_Bill,
-        'N_Repartoire' => $request->N_Repartoire,
-        'telecharger_fisher' => $path, // Store the uploaded file path
-    ]);
+    // باقي الطرق الأخرى بدون تعديلات
 
-    // Check if the operation was created successfully
-    if ($operation) {
-        // Return a success response with the created operation data
-        return response()->json(['message' => 'Operation created successfully', 'operation' => $operation], 201);
-    } else {
-        // Return an error response if creating the operation fails
-        return response()->json(['error' => 'Failed to create the operation'], 500);
-    }
-}
 
 
     /**
@@ -100,80 +94,66 @@ public function store(Request $request)
     /**
      * Show the form for editing the specified resource.
      */
-
-    // public function edit($id)
-    // {
-    //     $clientes = cliente::all();
-    //     $operation = operation::findorfail($id);
-    //     return view('operations.edit', compact('operation', 'clientes'));
-    // }
+    public function edit($id)
+    {
+        $clientes = cliente::all();
+        $operation = operation::findorfail($id);
+        return view('operations.edit', compact('operation', 'clientes'));
+    }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request)
+    public function update(Request $request, $id)
     {
-        try {
-            // Find the operation by ID
-            $operation = operation::findOrFail($request->id);
-
-            // Update the operation's attributes
-            $operation->id_cliente = $request->id_cliente;
-            $operation->client_company = $request->client_company;
-            $operation->N_declaration = $request->N_declaration;
-            $operation->La_Date = $request->La_Date;
-            $operation->N_Facture = $request->N_Facture;
-            $operation->Montant = $request->Montant;
-            $operation->N_Bill = $request->N_Bill;
-            $operation->N_Repartoire = $request->N_Repartoire;
-
-            
-            // Check if a new file is uploaded
-            if ($request->hasFile('telecharger_fisher')) {
-                // Delete the previous file if it exists
-                if (Storage::disk('doc_operation')->exists($operation->telecharger_fisher)) {
-                    Storage::disk('doc_operation')->delete($operation->telecharger_fisher);
-                }
-
-                // Store the new file
-                $document = $request->file('telecharger_fisher')->getClientOriginalName();
-                $path = $request->file('telecharger_fisher')->storeAs('operation', $document, 'doc_operation');
-                $operation->telecharger_fisher = $path;
+        $operation = operation::findorfail($id);
+        $operation->update([
+            'id_cliente' => $request->id_cliente,
+            'client_company' => $request->client_company,
+            'N_declaration' => $request->N_declaration,
+            'La_Date' => $request->La_Date,
+            'N_Facture' => $request->N_Facture,
+            'Montant' => $request->Montant,
+            'N_Bill' => $request->N_Bill,
+            'N_Repartoire' => $request->N_Repartoire,
+        ]);
+        if ($request->hasFile('telecharger_fisher')) {
+            if (Storage::disk('doc_operation')->exists($operation->telecharger_fisher)) {
+                Storage::disk('doc_operation')->delete($operation->telecharger_fisher);
             }
-
-            // Save the operation
-            $operation->save();
-
-            return response()->json(['msg' => 'Operation updated successfully']);
-        } catch (\Exception $e) {
-            return response()->json(['msg' => 'Error updating operation'], 500);
+            $document = $request->file('telecharger_fisher')->getClientOriginalName();
+            $path = $request->file('telecharger_fisher')->storeAs('operation', $document, 'doc_operation');
+            $operation->update([
+                'telecharger_fisher' => $path,
+            ]);
         }
+        return redirect()->Route('operations.index');
     }
-
-    
-
 
 
     /**
      * Remove the specified resource from storage.
      */
-    public function delete(Request $request)
+    public function destroy($id)
     {
-        try {
-            // Find the operation by ID
-            $operation = operation::findOrFail($request->id);
+        operation::destroy($id);
 
-            // Delete the operation
-            $operation->delete();
-
-            // Return a success response
-            return response()->json(['message' => 'Operation deleted successfully', 'operation' => $operation]);
-        } catch (\Exception $e) {
-            // Return an error response if the operation does not exist or if there is any other error
-            return response()->json(['error' => 'Failed to delete operation'], 500);
-        }
+        return redirect()->Route('operations.index');
     }
 
+    
+    public function getClient(Request $request)
+    {
+
+
+        if ($search = $request->id or $request->name) {
+
+            $name_or_id_cliente = cliente::where('id', 'LIKE', "%$search%")
+                ->orwhere('nom_et_prenom', 'LIKE', "%$search%")
+                ->get();
+        }
+        return response()->json($name_or_id_cliente);
+    }
 
 
     public function searchOperations(Request $request)
@@ -187,38 +167,24 @@ public function store(Request $request)
                 ->orwhere('N_Bill',  'like', "%$search%")
                 ->orwhere('N_Repartoire',  'like', "%$search%")
                 ->orwhere('Montant',  'like', "%$search%");
-        })->get();
+        })
+            ->orwhereHas('cliente', function ($query) use ($search) {
+                $query->where('nom_et_prenom', 'like', "%$search%")
+                    ->orwhere('N_Registre',  'like', "%$search%")
+                    ->orwhere('nif',  'like', "%$search%")
+                    ->orwhere('nis',  'like', "%$search%")
+                    ->orwhere('telecharger_fisher',  'like', "%$search%");
+            })
+            ->get();
 
-        if ($operations->isEmpty()) {
-            // إرجاع رسالة تعليمية في حالة عدم وجود نتائج
-            return response()->json(['message' => 'No results found for the specified search criteria']);
-        }
-    
-        // إرجاع النتائج كـ JSON
-        return response()->json(['operations' => $operations]);
+        return view('operations.index', compact('operations', 'search'));
     }
 
 
-    public function downloadOperation(Request $request)
+    public function downloadOperation(Request $request, $id)
     {
-        $id = $request->id;
-        $operation = operation::find($id);
-
-        // Check if the client record exists
-        if (!$operation) {
-            return response()->json(['msg' => 'operation file not found'], 404);
-        }
-
-        // Get the file path from the client record
-        $filePath = $operation->telecharger_fisher;
-
-        // Check if the file exists
-        if (!Storage::disk('doc_operation')->exists($filePath)) {
-            return response()->json(['msg' => 'File not found'], 404);
-        }
-
-        // Download the file
-        return response()->download(storage_path('app/doc_operation/' , $filePath));
-
+        $file = operation::find($id);
+        // $file->document_company;
+        return response()->download(public_path('documents/' . $file->telecharger_fisher));
     }
 }
