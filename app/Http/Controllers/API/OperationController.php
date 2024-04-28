@@ -1,9 +1,9 @@
 <?php
 
 namespace App\Http\Controllers\API;
-use App\Models\Operation; // تم استيراد الكلاس Operation بشكل صحيح
+use App\Models\Operation; 
 use Illuminate\Http\Request;
-use App\Models\Cliente; // تم تصحيح اسم الكلاس ليتطابق مع النمط بداية الحرف الصغير
+use App\Models\Cliente; 
 use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
 

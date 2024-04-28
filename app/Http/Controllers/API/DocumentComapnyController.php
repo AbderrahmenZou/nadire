@@ -40,11 +40,8 @@ class DocumentComapnyController extends Controller
         ]);
         $document = $request->file('document_company')->getClientOriginalName();
         $path = $request->file('document_company')->storeAs('company', $document, 'doc_company');
-
-
         // $pdf = PDF::loadView('pdf.usersPdf', $data);
         // return $pdf->download('users-lists.pdf');
-
         DocumentComapny::create([
             'document_company' => $path,
 
