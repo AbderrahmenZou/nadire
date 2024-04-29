@@ -46,14 +46,6 @@ class ClienteController extends Controller
 
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        return view('clientes.create');
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
 
@@ -266,7 +258,7 @@ class ClienteController extends Controller
         
         // Download the file
         return response()->download(public_path('documents/' . $filePath));
-        dd($filePath);
+        // dd($filePath);
     }
 
 }
