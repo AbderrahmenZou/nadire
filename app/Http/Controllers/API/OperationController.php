@@ -26,13 +26,6 @@ class OperationController extends Controller
         // Return JSON response with operations data
         return response()->json(['message' => 'Operations retrieved successfully', 'data' => $operations], 200);
     }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    /**
- * Store a newly created resource in storage.
- */
 /**
  * Store a newly created resource in storage.
  */
@@ -225,7 +218,7 @@ public function store(Request $request)
         
         // Download the file
         return response()->download(public_path('documents/' . $filePath));
-        dd($filePath);
+        // dd($filePath);
     }
    
 }
