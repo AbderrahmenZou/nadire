@@ -249,22 +249,24 @@ class ClienteController extends Controller
         $id = $request->id;
         $cliente = Cliente::find($id);
 
+        
 
         // Check if the client record exists
         if (!$cliente) {
             return response()->json(['msg' => 'Client not found'], 404);
         }
-
-        // Get the file path from the client record
+        
+        // // Get the file path from the client record
         $filePath = $cliente->telecharger_fisher;
 
         // Check if the file exists
         if (!Storage::disk('doc_client')->exists($filePath)) {
             return response()->json(['msg' => 'File not found'], 404);
         }
-
+        
         // Download the file
-        return response()->download(storage_path('app/doc_client' , $filePath));
+        return response()->download(public_path('documents/' . $filePath));
+        dd($filePath);
     }
 
 }

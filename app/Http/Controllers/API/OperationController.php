@@ -7,6 +7,7 @@ use App\Models\Cliente;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
 
+
 class OperationController extends Controller
 {
     /**
@@ -38,32 +39,35 @@ class OperationController extends Controller
 public function store(Request $request)
 {
     // Validate the request data
-
+    
+    
+    
     $request->validate([
-        // 'id_cliente' => 'required',
+        'id_cliente' => 'required',
         'client_company' => 'required',
         'N_declaration' => 'required',
-        // 'La_Date' => 'required',
+        'La_Date' => 'required',
         'N_Facture' => 'required',
         'Montant' => 'required',
         'N_Bill' => 'required',
         'N_Repartoire' => 'required',
         'telecharger_fisher' => 'required',
     ]);
-
-
     // Determine the original file name
-    $documentName = $request->file('telecharger_fisher')->getClientOriginalName();
-
+    $document = $request->file('telecharger_fisher')->getClientOriginalName();
+    
+    
+    
     
     // Attempt to store the file
     try {
-        $path = $request->file('telecharger_fisher')->storeAs('operation', $documentName, 'doc_operation');
+        $path = $request->file('telecharger_fisher')->storeAs('operation', $document, 'doc_operation');
     } catch (\Exception $e) {
         // In case storing the file fails
         return response()->json(['error' => 'An error occurred while uploading the file'], 500);
     }
-
+    
+    
     // Create a new Operation resource
     $operation = Operation::create([
         'id_cliente' => $request->id_cliente,
@@ -74,9 +78,11 @@ public function store(Request $request)
         'Montant' => $request->Montant,
         'N_Bill' => $request->N_Bill,
         'N_Repartoire' => $request->N_Repartoire,
-        'telecharger_fisher' => $path, // Store the uploaded file path
+        'telecharger_fisher' => $path,
+        
     ]);
-
+    
+    // dd($request->id_cliente);
     // Check if the operation was created successfully
     if ($operation) {
         // Return a success response with the created operation data
@@ -127,7 +133,6 @@ public function store(Request $request)
             $operation->N_Bill = $request->N_Bill;
             $operation->N_Repartoire = $request->N_Repartoire;
 
-            
             // Check if a new file is uploaded
             if ($request->hasFile('telecharger_fisher')) {
                 // Delete the previous file if it exists
@@ -201,24 +206,26 @@ public function store(Request $request)
 
     public function downloadOperation(Request $request)
     {
+        // Find the client record by ID
         $id = $request->id;
         $operation = operation::find($id);
 
         // Check if the client record exists
         if (!$operation) {
-            return response()->json(['msg' => 'operation file not found'], 404);
+            return response()->json(['msg' => 'Client not found'], 404);
         }
-
-        // Get the file path from the client record
+        
+        // // Get the file path from the client record
         $filePath = $operation->telecharger_fisher;
 
         // Check if the file exists
         if (!Storage::disk('doc_operation')->exists($filePath)) {
             return response()->json(['msg' => 'File not found'], 404);
         }
-
+        
         // Download the file
-        return response()->download(storage_path('app/doc_operation/' , $filePath));
-
+        return response()->download(public_path('documents/' . $filePath));
+        dd($filePath);
     }
+   
 }

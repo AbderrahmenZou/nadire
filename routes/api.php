@@ -25,7 +25,7 @@ Route::group(["namespace" => "API"], function () {
     });
 
 
-    Route::post('/clientes/index',  [ClienteController::class , 'index']);
+        Route::post('/clientes/index',  [ClienteController::class , 'index']);
         Route::post('/clientes/store',  [ClienteController::class , 'store']);
         Route::post('/clientes/update',  [ClienteController::class , 'update']);
         Route::post('/clientes/delete',  [ClienteController::class , 'delete']);
