@@ -7,10 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Operation;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ClienteRequest;
-use App\Http\Requests\OperationRequest;
-use App\Http\Requests\DocumentClienteRequest;
-use App\Http\Requests\DocumentCompanyRequest;
+
 
 class ClienteController extends Controller
 {
@@ -45,10 +42,10 @@ class ClienteController extends Controller
             'nis' => 'required',
             'telecharger_fisher' => 'required|file', // تأكد من أنه ملف
         ]);
-    
+
         // تحديد اسم الملف الأصلي
         $documentName = $request->file('telecharger_fisher')->getClientOriginalName();
-    
+
         // محاولة تخزين الملف
         try {
             $path = $request->file('telecharger_fisher')->storeAs('client', $documentName, 'doc_client');
@@ -56,7 +53,7 @@ class ClienteController extends Controller
             // في حالة فشل عملية تخزين الملف
             return redirect()->back()->withInput()->withErrors(['telecharger_fisher' => 'حدث خطأ أثناء تحميل الملف']);
         }
-    
+
         // إنشاء مورد Cliente جديد
         Cliente::create([
             'nom_et_prenom' => $validatedData['nom_et_prenom'],
@@ -66,15 +63,15 @@ class ClienteController extends Controller
             'nis' => $validatedData['nis'],
             'telecharger_fisher' => $path, // تخزين مسار الملف المحمل
         ]);
-    
+
         // توجيه المستخدم إلى القائمة بعد إنشاء العميل بنجاح
         return redirect()->route('clientes.index')->with('success', 'تم إنشاء العميل بنجاح');
     }
-    
-        // Storage::disk('client')->put('text.txt', $request->document_company);
 
-        // $formfileds['telecharger_fisher'] = $request->file('telecharger_fisher')->store('telecharger_fisher', 'public');
-        // return reponse('donne telechargement done');
+    // Storage::disk('client')->put('text.txt', $request->document_company);
+
+    // $formfileds['telecharger_fisher'] = $request->file('telecharger_fisher')->store('telecharger_fisher', 'public');
+    // return reponse('donne telechargement done');
     //     return redirect()->Route('clientes.index');
     // }
 

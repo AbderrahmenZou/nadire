@@ -33,25 +33,17 @@ class ClienteController extends Controller
         // // استخراج الرمز (token) من الطلب وتخزينه في متغير
         // return response()->json(['msg' => $token]);
         // // Check if any clientes were found
-        
+
         // if(!$token){
         //     return response()->json(['message' => 'il na pas login'], 404);
         // }elseif ($clientes->isEmpty()) {
         //     return response()->json(['message' => 'No clientes found'], 404);
         // }
-        
+
         // Return JSON response with clientes data
         return response()->json(['message' => 'Clientes retrieved successfully', 'data' => $clientes], 200);
     }
 
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        return view('clientes.create');
-    }
 
     /**
      * Store a newly created resource in storage.
@@ -69,7 +61,7 @@ class ClienteController extends Controller
             'telecharger_fisher' => 'required|file', // Ensure it is a file
         ]);
 
-        
+
         // Determine the original file name
         $documentName = $request->file('telecharger_fisher')->getClientOriginalName();
 
@@ -101,9 +93,9 @@ class ClienteController extends Controller
         }
     }
 
-        
-        
-      /*  Storage::disk('client')->put('text.txt', $request->document_company);
+
+
+    /*  Storage::disk('client')->put('text.txt', $request->document_company);
 
          $formfileds['telecharger_fisher'] = $request->file('telecharger_fisher')->store('telecharger_fisher', 'public');
          return reponse('donne telechargement done');
@@ -115,7 +107,8 @@ class ClienteController extends Controller
      */
 
 
-    public function show($id){
+    public function show($id)
+    {
 
         // Find the Cliente by ID
         $cliente = Cliente::find($id);
@@ -137,20 +130,21 @@ class ClienteController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    // public function edit($id){
+    public function edit($id)
+    {
 
-    //     // Find the Cliente by ID
-    //     $cliente = Cliente::find($id);
+        // Find the Cliente by ID
+        $cliente = Cliente::find($id);
 
-    //     // Check if the Cliente exists
-    //     if (!$cliente) {
-    //         // Return a not found response if Cliente does not exist
-    //         return response()->json(['error' => 'Cliente not found'], 404);
-    //     }
+        // Check if the Cliente exists
+        if (!$cliente) {
+            // Return a not found response if Cliente does not exist
+            return response()->json(['error' => 'Cliente not found'], 404);
+        }
 
-    //     // Return the Cliente data for editing
-    //     return response()->json(['cliente' => $cliente]);
-    // }
+        // Return the Cliente data for editing
+        return response()->json(['cliente' => $cliente]);
+    }
 
     /**
      * Update the specified resource in storage.
@@ -158,8 +152,7 @@ class ClienteController extends Controller
     public function update(Request $request)
     {
         // Find the cliente by ID
-        $cliente = cliente::find($request->id);
-    
+
         // Update the cliente's attributes
         $updated = cliente::where("id", $request->id)->update([
             'nom_et_prenom' => $request->nom_et_prenom,
@@ -169,7 +162,8 @@ class ClienteController extends Controller
             'nis' => $request->nis,
             'telecharger_fisher' => $request->telecharger_fisher,
         ]);
-    
+
+        $cliente = cliente::find($request->id);
         // Check if the cliente was updated successfully
         if ($updated) {
             // Check if a new file is uploaded
@@ -178,18 +172,18 @@ class ClienteController extends Controller
                 if (Storage::disk('doc_client')->exists($cliente->telecharger_fisher)) {
                     Storage::disk('doc_client')->delete($cliente->telecharger_fisher);
                 }
-    
+
                 // Store the new file
                 $document = $request->file('telecharger_fisher')->getClientOriginalName();
                 $path = $request->file('telecharger_fisher')->storeAs('client', $document, 'doc_client');
                 $cliente->telecharger_fisher = $path;
             }
             $cliente->save();
-            return response()->json(['msg' => 'Cliente updated successfully']);
+            return response()->json(['msg' => 'Cliente updated successfully', 'cliente' => $cliente]);
         }
         return response()->json(['msg' => "error"]);
     }
-    
+
 
 
     /**
@@ -199,20 +193,20 @@ class ClienteController extends Controller
     {
         // Find the Cliente by ID
         $cliente = cliente::find($request->id);
-    
+
         // Check if the Cliente exists
         if (!$cliente) {
             // Return a not found response if Cliente does not exist
             return response()->json(['error' => 'Cliente not found'], 404);
         }
-    
+
         // Delete the Cliente
         $cliente->delete();
-    
+
         // Return a success response
         return response()->json(['message' => 'Cliente deleted successfully', 'cliente' => $cliente]);
     }
-    
+
 
 
 
@@ -220,7 +214,7 @@ class ClienteController extends Controller
     {
         // استخراج معايير البحث من الطلب
         $search = $request->search;
-    
+
         // الاستعلام عن العملاء بناءً على المعايير المحددة
         $clientes = Cliente::where(function ($query) use ($search) {
             $query->where('nom_et_prenom', 'like', "%$search%")
@@ -229,17 +223,17 @@ class ClienteController extends Controller
                 ->orWhere('nis', 'like', "%$search%")
                 ->orWhere('telecharger_fisher', 'like', "%$search%");
         })->get();
-    
+
         // التحقق مما إذا كان هناك نتائج
         if ($clientes->isEmpty()) {
             // إرجاع رسالة تعليمية في حالة عدم وجود نتائج
             return response()->json(['message' => 'No results found for the specified search criteria']);
         }
-    
+
         // إرجاع النتائج كـ JSON
         return response()->json(['clientes' => $clientes]);
     }
-    
+
 
 
 
@@ -249,13 +243,13 @@ class ClienteController extends Controller
         $id = $request->id;
         $cliente = Cliente::find($id);
 
-        
+
 
         // Check if the client record exists
         if (!$cliente) {
             return response()->json(['msg' => 'Client not found'], 404);
         }
-        
+
         // // Get the file path from the client record
         $filePath = $cliente->telecharger_fisher;
 
@@ -263,10 +257,9 @@ class ClienteController extends Controller
         if (!Storage::disk('doc_client')->exists($filePath)) {
             return response()->json(['msg' => 'File not found'], 404);
         }
-        
+
         // Download the file
         return response()->download(public_path('documents/' . $filePath));
-        dd($filePath);
+        // dd($filePath);
     }
-
 }
