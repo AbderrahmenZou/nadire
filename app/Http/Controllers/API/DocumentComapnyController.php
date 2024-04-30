@@ -6,8 +6,8 @@ use App\Models\DocumentComapny;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
-use PDF;
-
+use Illuminate\Support\Facades\File;
+use Barryvdh\DomPDF\Facade as PDF;
 
 class DocumentComapnyController extends Controller
 {
